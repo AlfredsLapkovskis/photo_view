@@ -154,6 +154,8 @@ class PhotoViewGestureRecognizer extends ScaleGestureRecognizer {
     final bool shouldMove = hitDetector!.shouldMove(move, validateAxis!);
     if (shouldMove || _pointerLocations.keys.length > 1) {
       acceptGesture(event.pointer);
+    } else {
+      rejectGesture(event.pointer);
     }
   }
 }
