@@ -167,9 +167,9 @@ class _ImageWrapperState extends State<ImageWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return _buildLoading(context);
-    }
+    // if (_loading) {
+    //   return _buildLoading(context);
+    // }
 
     if (_lastException != null) {
       return _buildError(context);
@@ -180,7 +180,7 @@ class _ImageWrapperState extends State<ImageWrapper> {
       widget.maxScale ?? double.infinity,
       widget.initialScale ?? PhotoViewComputedScale.contained,
       widget.outerSize,
-      _imageSize!,
+      _imageSize ?? Size.zero,
     );
 
     return PhotoViewCore(
