@@ -115,11 +115,13 @@ class PhotoViewGestureRecognizer extends ScaleGestureRecognizer {
 
   @override
   void handleEvent(PointerEvent event) {
-    if (validateAxis != null) {
-      _computeEvent(event);
-      _updateDistances();
-      _decideIfWeAcceptEvent(event);
+    // if (validateAxis != null) {
+    _computeEvent(event);
+    _updateDistances();
+    if (!_decideIfWeAcceptEvent(event)) {
+      return;
     }
+    // }
     super.handleEvent(event);
   }
 
@@ -146,16 +148,38 @@ class PhotoViewGestureRecognizer extends ScaleGestureRecognizer {
         count > 0 ? focalPoint / count.toDouble() : Offset.zero;
   }
 
-  void _decideIfWeAcceptEvent(PointerEvent event) {
+  bool _decideIfWeAcceptEvent(PointerEvent event) {
     if (!(event is PointerMoveEvent)) {
-      return;
+      return true;
     }
     final move = _initialFocalPoint! - _currentFocalPoint!;
-    final bool shouldMove = hitDetector!.shouldMove(move, validateAxis!);
+
+    final axis = event.delta.dx.abs() > event.delta.dy.abs() ? Axis.horizontal : Axis.vertical;
+
+    switch (axis) {
+      case Axis.horizontal:
+        if (move.dx == 0) {
+          return true;
+        }
+
+        break;
+      case Axis.vertical:
+        if (move.dy == 0) {
+          return true;
+        }
+
+        break;
+    }
+
+    final bool shouldMove = hitDetector!.shouldMove(move, axis);
     if (shouldMove || _pointerLocations.keys.length > 1) {
       acceptGesture(event.pointer);
+
+      return true;
     } else {
-      rejectGesture(event.pointer);
+      resolve(GestureDisposition.rejected);
+
+      return false;
     }
   }
 }
