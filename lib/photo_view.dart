@@ -1,7 +1,6 @@
 library photo_view;
 
 import 'package:flutter/material.dart';
-
 import 'package:photo_view/src/controller/photo_view_controller.dart';
 import 'package:photo_view/src/controller/photo_view_scalestate_controller.dart';
 import 'package:photo_view/src/core/photo_view_core.dart';
@@ -12,8 +11,7 @@ import 'package:photo_view/src/utils/photo_view_hero_attributes.dart';
 
 export 'src/controller/photo_view_controller.dart';
 export 'src/controller/photo_view_scalestate_controller.dart';
-export 'src/core/photo_view_gesture_detector.dart'
-    show PhotoViewGestureDetectorScope;
+export 'src/core/photo_view_gesture_detector.dart' show PhotoViewGestureDetectorScope;
 export 'src/photo_view_computed_scale.dart';
 export 'src/photo_view_scale_state.dart';
 export 'src/utils/photo_view_hero_attributes.dart';
@@ -237,7 +235,7 @@ class PhotoView extends StatefulWidget {
   PhotoView({
     Key? key,
     required this.imageProvider,
-    this.loadingBuilder,
+    this.builder,
     this.backgroundDecoration,
     this.wantKeepAlive = false,
     this.semanticLabel,
@@ -260,7 +258,6 @@ class PhotoView extends StatefulWidget {
     this.tightMode,
     this.filterQuality,
     this.disableGestures,
-    this.errorBuilder,
     this.enablePanAlways,
     this.strictScale,
   })  : child = null,
@@ -299,23 +296,18 @@ class PhotoView extends StatefulWidget {
     this.disableGestures,
     this.enablePanAlways,
     this.strictScale,
-  })  : errorBuilder = null,
-        imageProvider = null,
+  })  : imageProvider = null,
+        builder = null,
         semanticLabel = null,
         gaplessPlayback = false,
-        loadingBuilder = null,
         super(key: key);
 
   /// Given a [imageProvider] it resolves into an zoomable image widget using. It
   /// is required
   final ImageProvider? imageProvider;
 
-  /// While [imageProvider] is not resolved, [loadingBuilder] is called by [PhotoView]
-  /// into the screen, by default it is a centered [CircularProgressIndicator]
-  final LoadingBuilder? loadingBuilder;
-
-  /// Show loadFailedChild when the image failed to load
-  final ImageErrorWidgetBuilder? errorBuilder;
+  /// Optional builder to build the image, loading placeholder or error content.
+  final PhotoViewBuilder? builder;
 
   /// Changes the background behind image, defaults to `Colors.black`.
   final BoxDecoration? backgroundDecoration;
@@ -425,8 +417,7 @@ class PhotoView extends StatefulWidget {
   }
 }
 
-class _PhotoViewState extends State<PhotoView>
-    with AutomaticKeepAliveClientMixin {
+class _PhotoViewState extends State<PhotoView> with AutomaticKeepAliveClientMixin {
   // image retrieval
 
   // controller
@@ -508,8 +499,7 @@ class _PhotoViewState extends State<PhotoView>
         BoxConstraints constraints,
       ) {
         final computedOuterSize = widget.customSize ?? constraints.biggest;
-        final backgroundDecoration = widget.backgroundDecoration ??
-            const BoxDecoration(color: Colors.black);
+        final backgroundDecoration = widget.backgroundDecoration ?? const BoxDecoration(color: Colors.black);
 
         return widget._isCustomChild
             ? CustomChildWrapper(
@@ -539,7 +529,7 @@ class _PhotoViewState extends State<PhotoView>
               )
             : ImageWrapper(
                 imageProvider: widget.imageProvider!,
-                loadingBuilder: widget.loadingBuilder,
+                builder: widget.builder,
                 backgroundDecoration: backgroundDecoration,
                 semanticLabel: widget.semanticLabel,
                 gaplessPlayback: widget.gaplessPlayback,
@@ -561,7 +551,6 @@ class _PhotoViewState extends State<PhotoView>
                 tightMode: widget.tightMode,
                 filterQuality: widget.filterQuality,
                 disableGestures: widget.disableGestures,
-                errorBuilder: widget.errorBuilder,
                 enablePanAlways: widget.enablePanAlways,
                 strictScale: widget.strictScale,
               );
@@ -618,8 +607,12 @@ typedef PhotoViewImageScaleEndCallback = Function(
   PhotoViewControllerValue controllerValue,
 );
 
-/// A type definition for a callback to show a widget while the image is loading, a [ImageChunkEvent] is passed to inform progress
-typedef LoadingBuilder = Widget Function(
+/// A type definition for a callback to build a widget.
+typedef PhotoViewBuilder = Widget Function(
   BuildContext context,
-  ImageChunkEvent? event,
+  Widget image,
+  bool loading,
+  ImageChunkEvent? loadingEvent,
+  Object? error,
+  StackTrace? stackTrace,
 );

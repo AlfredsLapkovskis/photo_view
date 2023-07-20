@@ -9,7 +9,7 @@ class ImageWrapper extends StatefulWidget {
   const ImageWrapper({
     Key? key,
     required this.imageProvider,
-    required this.loadingBuilder,
+    required this.builder,
     required this.backgroundDecoration,
     required this.semanticLabel,
     required this.gaplessPlayback,
@@ -31,14 +31,12 @@ class ImageWrapper extends StatefulWidget {
     required this.tightMode,
     required this.filterQuality,
     required this.disableGestures,
-    required this.errorBuilder,
     required this.enablePanAlways,
     required this.strictScale,
   }) : super(key: key);
 
   final ImageProvider imageProvider;
-  final LoadingBuilder? loadingBuilder;
-  final ImageErrorWidgetBuilder? errorBuilder;
+  final PhotoViewBuilder? builder;
   final BoxDecoration backgroundDecoration;
   final String? semanticLabel;
   final bool gaplessPlayback;
@@ -136,7 +134,7 @@ class _ImageWrapperState extends State<ImageWrapper> {
         _lastStack = stackTrace;
       });
       assert(() {
-        if (widget.errorBuilder == null) {
+        if (widget.builder == null) {
           throw error;
         }
         return true;
@@ -167,9 +165,9 @@ class _ImageWrapperState extends State<ImageWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    // if (_loading) {
-    //   return _buildLoading(context);
-    // }
+    if (_loading && (widget.builder != null)) {
+      return widget.builder!(context, const SizedBox(), true, _loadingProgress, null, null);
+    }
 
     if (_lastException != null) {
       return _buildError(context);
@@ -183,7 +181,7 @@ class _ImageWrapperState extends State<ImageWrapper> {
       _imageSize ?? Size.zero,
     );
 
-    return PhotoViewCore(
+    Widget photoView = PhotoViewCore(
       imageProvider: widget.imageProvider,
       backgroundDecoration: widget.backgroundDecoration,
       semanticLabel: widget.semanticLabel,
@@ -205,23 +203,15 @@ class _ImageWrapperState extends State<ImageWrapper> {
       disableGestures: widget.disableGestures ?? false,
       enablePanAlways: widget.enablePanAlways ?? false,
     );
-  }
 
-  Widget _buildLoading(BuildContext context) {
-    if (widget.loadingBuilder != null) {
-      return widget.loadingBuilder!(context, _loadingProgress);
-    }
-
-    return PhotoViewDefaultLoading(
-      event: _loadingProgress,
-    );
+    return widget.builder?.call(context, photoView, false, null, null, null) ?? photoView;
   }
 
   Widget _buildError(
     BuildContext context,
   ) {
-    if (widget.errorBuilder != null) {
-      return widget.errorBuilder!(context, _lastException!, _lastStack);
+    if (widget.builder != null) {
+      return widget.builder!(context, const SizedBox(), false, null, _lastException!, _lastStack);
     }
     return PhotoViewDefaultError(
       decoration: widget.backgroundDecoration,

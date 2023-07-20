@@ -2,15 +2,7 @@ library photo_view_gallery;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:photo_view/photo_view.dart'
-    show
-        LoadingBuilder,
-        PhotoView,
-        PhotoViewImageTapDownCallback,
-        PhotoViewImageTapUpCallback,
-        PhotoViewImageScaleEndCallback,
-        ScaleStateCycle;
-
+import 'package:photo_view/photo_view.dart' show PhotoViewBuilder, PhotoView, PhotoViewImageTapDownCallback, PhotoViewImageTapUpCallback, PhotoViewImageScaleEndCallback, ScaleStateCycle;
 import 'package:photo_view/src/controller/photo_view_controller.dart';
 import 'package:photo_view/src/controller/photo_view_scalestate_controller.dart';
 import 'package:photo_view/src/core/photo_view_gesture_detector.dart';
@@ -21,8 +13,7 @@ import 'package:photo_view/src/utils/photo_view_hero_attributes.dart';
 typedef PhotoViewGalleryPageChangedCallback = void Function(int index);
 
 /// A type definition for a [Function] that defines a page in [PhotoViewGallery.build]
-typedef PhotoViewGalleryBuilder = PhotoViewGalleryPageOptions Function(
-    BuildContext context, int index);
+typedef PhotoViewGalleryBuilder = PhotoViewGalleryPageOptions Function(BuildContext context, int index);
 
 /// A [StatefulWidget] that shows multiple [PhotoView] widgets in a [PageView]
 ///
@@ -104,7 +95,7 @@ class PhotoViewGallery extends StatefulWidget {
   const PhotoViewGallery({
     Key? key,
     required this.pageOptions,
-    this.loadingBuilder,
+    this.photoBuilder,
     this.backgroundDecoration,
     this.wantKeepAlive = false,
     this.gaplessPlayback = false,
@@ -128,7 +119,7 @@ class PhotoViewGallery extends StatefulWidget {
     Key? key,
     required this.itemCount,
     required this.builder,
-    this.loadingBuilder,
+    this.photoBuilder,
     this.backgroundDecoration,
     this.wantKeepAlive = false,
     this.gaplessPlayback = false,
@@ -158,8 +149,8 @@ class PhotoViewGallery extends StatefulWidget {
   /// [ScrollPhysics] for the internal [PageView]
   final ScrollPhysics? scrollPhysics;
 
-  /// Mirror to [PhotoView.loadingBuilder]
-  final LoadingBuilder? loadingBuilder;
+  /// Mirror to [PhotoView.builder]
+  final PhotoViewBuilder? photoBuilder;
 
   /// Mirror to [PhotoView.backgroundDecoration]
   final BoxDecoration? backgroundDecoration;
@@ -203,8 +194,7 @@ class PhotoViewGallery extends StatefulWidget {
 }
 
 class _PhotoViewGalleryState extends State<PhotoViewGallery> {
-  late final PageController _controller =
-      widget.pageController ?? PageController();
+  late final PageController _controller = widget.pageController ?? PageController();
 
   void scaleStateChangedCallback(PhotoViewScaleState scaleState) {
     if (widget.scaleStateChangedCallback != null) {
@@ -274,7 +264,7 @@ class _PhotoViewGalleryState extends State<PhotoViewGallery> {
         : PhotoView(
             key: ObjectKey(index),
             imageProvider: pageOption.imageProvider,
-            loadingBuilder: widget.loadingBuilder,
+            builder: widget.photoBuilder,
             backgroundDecoration: widget.backgroundDecoration,
             wantKeepAlive: widget.wantKeepAlive,
             controller: pageOption.controller,
@@ -297,7 +287,6 @@ class _PhotoViewGalleryState extends State<PhotoViewGallery> {
             filterQuality: pageOption.filterQuality,
             basePosition: pageOption.basePosition,
             disableGestures: pageOption.disableGestures,
-            errorBuilder: pageOption.errorBuilder,
           );
 
     return ClipRect(
@@ -305,8 +294,7 @@ class _PhotoViewGalleryState extends State<PhotoViewGallery> {
     );
   }
 
-  PhotoViewGalleryPageOptions _buildPageOption(
-      BuildContext context, int index) {
+  PhotoViewGalleryPageOptions _buildPageOption(BuildContext context, int index) {
     if (widget._isBuilder) {
       return widget.builder!(context, index);
     }
@@ -338,7 +326,6 @@ class PhotoViewGalleryPageOptions {
     this.tightMode,
     this.filterQuality,
     this.disableGestures,
-    this.errorBuilder,
   })  : child = null,
         childSize = null,
         assert(imageProvider != null);
@@ -362,8 +349,7 @@ class PhotoViewGalleryPageOptions {
     this.tightMode,
     this.filterQuality,
     this.disableGestures,
-  })  : errorBuilder = null,
-        imageProvider = null;
+  }) : imageProvider = null;
 
   /// Mirror to [PhotoView.imageProvider]
   final ImageProvider? imageProvider;
@@ -421,7 +407,4 @@ class PhotoViewGalleryPageOptions {
 
   /// Quality levels for image filters.
   final FilterQuality? filterQuality;
-
-  /// Mirror to [PhotoView.errorBuilder]
-  final ImageErrorWidgetBuilder? errorBuilder;
 }
